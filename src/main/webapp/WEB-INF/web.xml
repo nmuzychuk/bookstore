@@ -3,15 +3,5 @@
         "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-    <display-name>Archetype Created Web Application</display-name>
-
-    <servlet>
-        <servlet-name>BookServlet</servlet-name>
-        <servlet-class>com.nmuzychuk.BookServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>BookServlet</servlet-name>
-        <url-pattern>/books</url-pattern>
-    </servlet-mapping>
+    <display-name>Bookstore</display-name>
 </web-app>
