@@ -11,17 +11,19 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @WebServlet(urlPatterns = {"/books"}, asyncSupported = true)
 public class BookServlet extends HttpServlet {
     static private Map<Integer, String> books;
+    static private AtomicInteger id = new AtomicInteger();
 
     @Override
     public void init(ServletConfig servletConfig) {
         books = new HashMap<>();
 
-        for (int i = 1; i <= 5; i++) {
-            books.put(i, "Book" + i);
+        for (int i = id.get(); i < 5; i++) {
+            books.put(id.incrementAndGet(), "Book" + id.get());
         }
     }
 
@@ -53,8 +55,24 @@ public class BookServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        PrintWriter out = resp.getWriter();
-        out.println("adding book");
+        req.startAsync();
+
+        final String name = req.getParameter("name");
+        final Writer out = resp.getWriter();
+
+        final AsyncContext asyncContext = req.getAsyncContext();
+        asyncContext.start(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    books.put(id.incrementAndGet(), name + id.get());
+                    out.write(books.get(id.get()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                asyncContext.complete();
+            }
+        });
     }
 
     @Override
