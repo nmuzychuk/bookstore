@@ -22,6 +22,7 @@ public class BookServlet extends HttpServlet {
     public void init(ServletConfig servletConfig) {
         books = new HashMap<>();
 
+        // Add 5 books
         for (int i = id.get(); i < 5; i++) {
             books.put(id.incrementAndGet(), "Book" + id.get());
         }
@@ -57,7 +58,7 @@ public class BookServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         req.startAsync();
 
-        final String name = req.getParameter("name");
+        final String paramName = req.getParameter("name");
         final Writer out = resp.getWriter();
 
         final AsyncContext asyncContext = req.getAsyncContext();
@@ -65,7 +66,7 @@ public class BookServlet extends HttpServlet {
             @Override
             public void run() {
                 try {
-                    books.put(id.incrementAndGet(), name + id.get());
+                    books.put(id.incrementAndGet(), paramName + id.get());
                     out.write(books.get(id.get()));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -76,9 +77,30 @@ public class BookServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        PrintWriter out = resp.getWriter();
-        out.println("updating book");
+    protected void doPut(HttpServletRequest req, final HttpServletResponse resp) throws IOException {
+        req.startAsync();
+
+        final String paramId = req.getParameter("id");
+        final String paramName = req.getParameter("name");
+        final Writer out = resp.getWriter();
+
+        final AsyncContext asyncContext = req.getAsyncContext();
+        asyncContext.start(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (paramId == null) {
+                        resp.sendError(400);
+                    } else {
+                        books.put(Integer.parseInt(paramId), paramName + paramId);
+                        out.write(books.get(new Integer(paramId)));
+                    }
+                    asyncContext.complete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
