@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,8 +103,27 @@ public class BookServlet extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        PrintWriter out = resp.getWriter();
-        out.println("deleting book");
+    protected void doDelete(HttpServletRequest req, final HttpServletResponse resp) {
+        req.startAsync();
+
+        final String paramId = req.getParameter("id");
+
+        final AsyncContext asyncContext = req.getAsyncContext();
+        asyncContext.start(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (paramId == null) {
+                        resp.sendError(400);
+                    } else {
+                        books.remove(new Integer(paramId));
+                        resp.setStatus(204);
+                    }
+                    asyncContext.complete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }
