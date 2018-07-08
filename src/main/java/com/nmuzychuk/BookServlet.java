@@ -54,7 +54,7 @@ public class BookServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doPost(HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         req.startAsync();
 
         final String paramName = req.getParameter("name");
@@ -66,6 +66,7 @@ public class BookServlet extends HttpServlet {
             public void run() {
                 try {
                     books.put(id.incrementAndGet(), paramName + id.get());
+                    resp.setStatus(201);
                     out.write(books.get(id.get()));
                 } catch (IOException e) {
                     e.printStackTrace();
