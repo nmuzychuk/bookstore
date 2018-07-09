@@ -30,6 +30,6 @@ public class Book {
 
     @Override
     public String toString() {
-        return this.getId() + " " + this.getName();
+        return GsonHelper.toJson(this);
     }
 }
