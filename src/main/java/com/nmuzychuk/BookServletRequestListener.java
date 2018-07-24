@@ -26,5 +26,6 @@ public class BookServletRequestListener implements ServletRequestListener {
 
     @Override
     public void requestDestroyed(ServletRequestEvent sre) {
+        // Add empty method because of jetty java.lang.AbstractMethodError
     }
 }
