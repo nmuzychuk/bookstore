@@ -1,5 +1,10 @@
 package com.nmuzychuk;
 
+import org.redisson.Redisson;
+import org.redisson.api.RList;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.annotation.WebServlet;
@@ -8,24 +13,28 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @WebServlet(urlPatterns = {"/books"}, asyncSupported = true)
 public class BookServlet extends HttpServlet {
-    static private List<Book> books;
+    static private RedissonClient redisson;
+    static private RList<Book> books;
     static private AtomicInteger id = new AtomicInteger();
 
     @Override
     public void init(ServletConfig servletConfig) {
-        books = new ArrayList<>();
+        Config config = new Config();
+        config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+        redisson = Redisson.create(config);
+        books = redisson.getList("bookList");
 
         // Add 5 books
         for (id.incrementAndGet(); id.get() <= 5; id.incrementAndGet()) {
-            Book book = new Book(id.get(), "Book");
-            books.add(book);
+            if (books.get(id.get()) == null) {
+                Book book = new Book(id.get(), "Book");
+                books.add(book);
+            }
         }
     }
 
@@ -66,7 +75,7 @@ public class BookServlet extends HttpServlet {
         final AsyncContext asyncContext = req.getAsyncContext();
         asyncContext.start(() -> {
             try {
-                Book book = new Book(id.incrementAndGet(), paramName);
+                Book book = new Book(id.getAndIncrement(), paramName);
                 books.add(book);
                 resp.setStatus(201);
                 out.write(book.toString());
@@ -131,5 +140,10 @@ public class BookServlet extends HttpServlet {
                 e.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public void destroy() {
+        redisson.shutdown();
     }
 }
