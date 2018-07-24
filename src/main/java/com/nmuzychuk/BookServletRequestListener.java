@@ -23,4 +23,8 @@ public class BookServletRequestListener implements ServletRequestListener {
         String msg = sr.getMethod() + " " + sr.getRequestURL() + " " + params;
         sc.log(msg);
     }
+
+    @Override
+    public void requestDestroyed(ServletRequestEvent sre) {
+    }
 }
