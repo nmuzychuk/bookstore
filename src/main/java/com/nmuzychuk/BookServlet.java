@@ -26,6 +26,7 @@ public class BookServlet extends HttpServlet {
     public void init(ServletConfig servletConfig) {
         Config config = new Config();
         config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+        config.setCodec(new org.redisson.codec.JsonJacksonCodec());
         redisson = Redisson.create(config);
         books = redisson.getList("bookList");
 
